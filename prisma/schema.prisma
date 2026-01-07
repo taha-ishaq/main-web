@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  superadmin
+  admin
+  manager
+  driver
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  username          String   @unique
+  email             String   @unique
+  password          String
+  phoneNumber       String   @unique
+  address           String
+  postalCode        String
+  city              String
+  role              Role     @default(superadmin)
+  isActive          Boolean  @default(true)
+  notes             String  @db.Text
+  registrationDate  DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
