@@ -3,30 +3,43 @@
 import { useState } from "react";
 import { Menu, User, LogOut, Home, FileText, Settings } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      // even if request fails, still redirect (middleware will handle access)
+    } finally {
+      router.push("/auth/login");
+      router.refresh(); // optional: ensures UI updates immediately
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-zinc-900">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } transition-all duration-300 bg-white dark:bg-zinc-800 shadow-md flex flex-col`}
+        className={`${sidebarOpen ? "w-64" : "w-20"
+          } transition-all duration-300 bg-white dark:bg-zinc-800 shadow-md flex flex-col`}
       >
         {/* Brand */}
         <div className="flex items-center justify-between px-4 py-5 border-b border-gray-200 dark:border-zinc-700">
           <span
-            className={`text-xl font-bold text-yellow-500 ${
-              !sidebarOpen && "hidden"
-            }`}
+            className={`text-xl font-bold text-yellow-500 ${!sidebarOpen && "hidden"
+              }`}
           >
             RSA
           </span>
+
           <button
             className="text-zinc-500 hover:text-yellow-500"
             onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Toggle sidebar"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -35,7 +48,7 @@ export default function Dashboard() {
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-2">
           <Link
-            href="#"
+            href="/"
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 dark:text-zinc-200 dark:hover:bg-yellow-600/20 dark:hover:text-yellow-500"
           >
             <Home className="h-5 w-5" />
@@ -61,7 +74,10 @@ export default function Dashboard() {
 
         {/* Logout */}
         <div className="px-4 py-4 border-t border-gray-200 dark:border-zinc-700">
-          <button className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-600/20 dark:hover:text-red-300">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-600/20 dark:hover:text-red-300"
+          >
             <LogOut className="h-5 w-5" />
             {sidebarOpen && "Logout"}
           </button>
@@ -75,6 +91,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-semibold text-gray-800 dark:text-white">
             Dashboard
           </h1>
+
           <div className="flex items-center gap-4">
             <User className="h-6 w-6 text-zinc-600 dark:text-zinc-300" />
             <span className="text-gray-700 dark:text-zinc-200 font-medium">
