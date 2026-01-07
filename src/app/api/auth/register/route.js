@@ -1,27 +1,34 @@
-import prisma from '@/lib/prisma';
-import { hashPassword, generateToken } from '@/lib/auth';
+import prisma from "@/lib/prisma";
+import { hashPassword, generateToken } from "@/lib/auth";
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const {
-      firstName, 
-      lastName, 
-      username, 
-      email, 
-      password, 
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
       phoneNumber,
       address,
       postalCode,
       city,
       role,
-      notes
+      notes,
     } = body;
 
     // Validate required fields
-    if (!firstName || !lastName || !username || !email || !password || !phoneNumber) {
+    if (
+      !firstName ||
+      !lastName ||
+      !username ||
+      !email ||
+      !password ||
+      !phoneNumber
+    ) {
       return Response.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -29,17 +36,13 @@ export async function POST(request) {
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email },
-          { username },
-          { phoneNumber }
-        ]
-      }
+        OR: [{ email }, { username }, { phoneNumber }],
+      },
     });
 
     if (existingUser) {
       return Response.json(
-        { error: 'User with this email, username, or phone already exists' },
+        { error: "User with this email, username, or phone already exists" },
         { status: 409 }
       );
     }
@@ -59,9 +62,9 @@ export async function POST(request) {
         address,
         postalCode,
         city,
-        role: role || 'superadmin',
-        notes: notes || '',
-        isActive: true
+        role: role || "superadmin",
+        notes: notes || "",
+        isActive: true,
       },
       // return only necessary fields
       select: {
@@ -72,28 +75,26 @@ export async function POST(request) {
         email: true,
         phoneNumber: true,
         role: true,
-        isActive: true
-      }
+        isActive: true,
+      },
     });
 
     // Generate token
     const token = await generateToken(user.id, user.role);
 
-    return Response.json({
-      message: 'User registered successfully',
-      user,
-      token
-    }, { status: 201 });
-
-  } catch (error) {
-    console.error('Registration error:', error);
     return Response.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        message: "User registered successfully",
+        user,
+        token,
+      },
+      { status: 201 }
     );
+  } catch (error) {
+    console.error("Registration error:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
 
 // import pool from '@/lib/prisma';
 // import { hashPassword, generateToken } from '@/lib/auth';
@@ -101,12 +102,12 @@ export async function POST(request) {
 // export async function POST(request) {
 //   try {
 //     const body = await request.json();
-//     const { 
-//       firstName, 
-//       lastName, 
-//       username, 
-//       email, 
-//       password, 
+//     const {
+//       firstName,
+//       lastName,
+//       username,
+//       email,
+//       password,
 //       phoneNumber,
 //       address,
 //       postalCode,
@@ -128,7 +129,7 @@ export async function POST(request) {
 //       'SELECT * FROM User WHERE email = ? OR username = ? OR phoneNumber = ? LIMIT 1',
 //       [email, username, phoneNumber]
 //     );
-    
+
 //     const existingUser = rows[0];
 
 //     if (existingUser) {
@@ -144,7 +145,7 @@ export async function POST(request) {
 //     // Create user - USING RAW SQL
 // const now = new Date();
 // const [result] = await pool.query(
-//   `INSERT INTO User (firstName, lastName, username, email, password, phoneNumber, address, postalCode, city, role, notes, isActive, registrationDate, updatedAt) 
+//   `INSERT INTO User (firstName, lastName, username, email, password, phoneNumber, address, postalCode, city, role, notes, isActive, registrationDate, updatedAt)
 //    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 //   [firstName, lastName, username, email, hashedPassword, phoneNumber, address || '', postalCode || '', city || '', role || 'superadmin', notes || '', true, now, now]
 // );
