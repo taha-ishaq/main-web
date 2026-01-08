@@ -47,7 +47,7 @@ function isAllowedFileType(mimeType) {
 
 export async function POST(req) {
   try {
-    // 1️⃣ Verify JWT token
+    // Verify JWT token
     const authHeader = req.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -60,7 +60,7 @@ export async function POST(req) {
     }
     const userId = payload.userId;
 
-    // 2️⃣ Parse FormData
+    // Parse FormData
     const formData = await req.formData();
     const file = formData.get("file");
 
@@ -68,7 +68,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // 3️⃣ Validate file
+    // Validate file with type and size
     if (!isAllowedFileType(file.type)) {
       return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
     }
@@ -78,25 +78,25 @@ export async function POST(req) {
       return NextResponse.json({ error: "File size exceeds 100MB limit" }, { status: 400 });
     }
 
-    // 4️⃣ Get category and folder
+    // Get category and folder
     const { category, folder } = getCategoryAndFolder(file.type);
 
-    // 5️⃣ Create upload path
+    // Create upload path
     const MEDIA_DIR = path.join(process.cwd(), "media");
     const uploadPath = path.join(MEDIA_DIR, folder);
     await ensureDir(uploadPath);
 
-    // 6️⃣ Generate unique filename
+    // Generate unique filename
     const ext = path.extname(file.name);
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     const filePath = path.join(uploadPath, uniqueName);
 
-    // 7️⃣ Convert file to buffer and save
+    // Convert file to buffer and save
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     await writeFile(filePath, buffer);
 
-    // 8️⃣ Save metadata to database
+    // Save user metadata to database
     const media = await prisma.media.create({
       data: {
         userId,
