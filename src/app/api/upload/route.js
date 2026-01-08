@@ -1,5 +1,3 @@
-// src/app/api/upload/route.js
-
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -11,7 +9,7 @@ async function ensureDir(dir) {
   try {
     await mkdir(dir, { recursive: true });
   } catch (error) {
-    // Directory already exists, ignore
+    // IF Directory already exists, ignore
   }
 }
 
