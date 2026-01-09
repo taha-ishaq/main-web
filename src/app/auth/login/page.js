@@ -127,6 +127,16 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-center">
+            <Link
+              href="/auth/forgotPassword"
+              className="text-sm font-medium text-yellow-600 hover:underline dark:text-yellow-400"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           {/* Error */}
           {error && (
             <div
