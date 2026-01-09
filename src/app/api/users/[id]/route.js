@@ -1,15 +1,11 @@
 import prisma from '@/lib/prisma';
-import { requireRole } from '@/lib/middleware';
+import { requireAuth, requireRole } from '@/lib/middleware';
 import { hashPassword } from '@/lib/auth';
 
 // GET single user
 export async function GET(request, context) {
   try {
-    const authResult = await requireRole(request, [
-      'superadmin',
-      'admin',
-      'manager',
-    ]);
+    const authResult = await requireAuth(request);
 
     if (authResult.error) {
       return Response.json(
@@ -26,6 +22,18 @@ export async function GET(request, context) {
       return Response.json(
         { error: 'Invalid user ID' },
         { status: 400 }
+      );
+    }
+
+    // Users can view their own profile OR admins/superadmins can view anyone
+    const currentUser = authResult.user;
+    const isViewingSelf = currentUser.userId === userId;
+    const canViewOthers = ['superadmin', 'admin', 'manager'].includes(currentUser.role);
+
+    if (!isViewingSelf && !canViewOthers) {
+      return Response.json(
+        { error: 'Forbidden - You can only view your own profile' },
+        { status: 403 }
       );
     }
 
@@ -68,10 +76,7 @@ export async function GET(request, context) {
 // UPDATE user
 export async function PATCH(request, context) {
   try {
-    const authResult = await requireRole(request, [
-      'superadmin',
-      'admin',
-    ]);
+    const authResult = await requireAuth(request);
 
     if (authResult.error) {
       return Response.json(
@@ -91,12 +96,59 @@ export async function PATCH(request, context) {
       );
     }
 
-    const body = await request.json();
-    const { password, ...updateData } = body;
+    const currentUser = authResult.user;
+    const isUpdatingSelf = currentUser.userId === userId;
+    const canUpdateOthers = ['superadmin', 'admin'].includes(currentUser.role);
 
-    // Hash password if new provided
+    // Users can update their own profile
+    // Only superadmin/admin can update others
+    if (!isUpdatingSelf && !canUpdateOthers) {
+      return Response.json(
+        { error: 'Forbidden - You can only update your own profile' },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { password, role, ...updateData } = body;
+
+    // Prevent non-superadmins from changing roles
+    if (role && currentUser.role !== 'superadmin') {
+      return Response.json(
+        { error: 'Forbidden - Only superadmin can change roles' },
+        { status: 403 }
+      );
+    }
+
+    // Get target user to check their role
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+
+    if (!targetUser) {
+      return Response.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Prevent admins from editing superadmins
+    if (currentUser.role === 'admin' && targetUser.role === 'superadmin') {
+      return Response.json(
+        { error: 'Forbidden - Admins cannot edit superadmins' },
+        { status: 403 }
+      );
+    }
+
+    // Hash password if provided
     if (password) {
       updateData.password = await hashPassword(password);
+    }
+
+    // Add role if superadmin is changing it
+    if (role && currentUser.role === 'superadmin') {
+      updateData.role = role;
     }
 
     const user = await prisma.user.update({
@@ -127,10 +179,11 @@ export async function PATCH(request, context) {
   }
 }
 
-// DELETE user
+// DELETE user - Only superadmin and admin
 export async function DELETE(request, context) {
   try {
-    const authResult = await requireRole(request, ['superadmin']);
+
+    const authResult = await requireRole(request, ['superadmin', 'admin']);
 
     if (authResult.error) {
       return Response.json(
@@ -147,6 +200,35 @@ export async function DELETE(request, context) {
       return Response.json(
         { error: 'Invalid user ID' },
         { status: 400 }
+      );
+    }
+
+    // Prevent deleting your own account
+    if (authResult.user.userId === userId) {
+      return Response.json(
+        { error: 'Cannot delete your own account' },
+        { status: 400 }
+      );
+    }
+
+    // Get target user to check their role
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+
+    if (!targetUser) {
+      return Response.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Prevent admins from deleting superadmins
+    if (authResult.user.role === 'admin' && targetUser.role === 'superadmin') {
+      return Response.json(
+        { error: 'Forbidden - Admins cannot delete superadmins' },
+        { status: 403 }
       );
     }
 
