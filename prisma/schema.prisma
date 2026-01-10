@@ -8,25 +8,10 @@ datasource db {
 }
 
 enum Role {
-  employeeAadministrator
-  controlDriver
-  client
-  employeeAdmin_controlDriver
-  constructionManager
+  superadmin
   admin
-}
-
-model Customer {
-  customer_id     Int      @id @default(autoincrement())
-  customerName    String   @unique
-  note            String?
-  creationDate    DateTime @default(now())
-  lastPatrol      DateTime
-  isActive        Boolean  @default(true)
-  number_of_users Int
-  createdBy       Int
-
-  users User[] // one customer has many users
+  manager
+  driver
 }
 
 model User {
@@ -37,18 +22,14 @@ model User {
   email            String   @unique
   password         String
   phoneNumber      String   @unique
-  workPhone        String?
   address          String?
   postalCode       String?
   city             String?
-  role             Role     @default(admin)
+  role             Role     @default(manager)
   isActive         Boolean  @default(true)
   notes            String?  @db.Text
   registrationDate DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
-  customer_id Int
-  customer    Customer @relation(fields: [customer_id], references: [customer_id])
 }
 
 model PasswordResetOTP {
