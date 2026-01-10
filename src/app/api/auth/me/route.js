@@ -14,9 +14,43 @@ export async function GET(request) {
       );
     }
 
-    // Get current/loggedin user from database
+    const { userId, role } = authResult.user;
+
+    // Check if SuperAdmin
+    if (role === "superadmin") {
+      const superAdmin = await prisma.superAdmin.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+
+      if (!superAdmin) {
+        return NextResponse.json(
+          { error: "SuperAdmin not found" },
+          { status: 404 }
+        );
+      }
+
+      if (!superAdmin.isActive) {
+        return NextResponse.json(
+          { error: "Account is deactivated" },
+          { status: 403 }
+        );
+      }
+
+      return NextResponse.json({ 
+        user: { ...superAdmin, role: "superadmin" } 
+      });
+    }
+
+    // Otherwise, it's a regular User
     const user = await prisma.user.findUnique({
-      where: { id: authResult.user.userId },
+      where: { id: userId },
       select: {
         id: true,
         firstName: true,
@@ -31,6 +65,12 @@ export async function GET(request) {
         isActive: true,
         notes: true,
         registrationDate: true,
+        customer_id: true,
+        customer: {
+          select: {
+            customerName: true,
+          },
+        },
       },
     });
 

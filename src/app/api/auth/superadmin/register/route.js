@@ -1,7 +1,4 @@
-// ===============================
-// 3) SUPERADMIN REGISTER (TEMPORARY)
-// File: app/api/auth/superadmin/register/route.js
-// ===============================
+// src/app/api/auth/superadmin/register/route.js
 import prisma from "@/lib/prisma";
 import { hashPassword, generateToken } from "@/lib/auth";
 import { NextResponse } from "next/server";
@@ -10,66 +7,49 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const {
-            firstName,
-            lastName,
-            username,
+            name,
             email,
             password,
-            phoneNumber,
-            address,
-            postalCode,
-            city,
-            notes,
         } = body;
 
-        if (!firstName || !lastName || !username || !email || !password || !phoneNumber) {
+        if (!name || !email || !password) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        const existingUser = await prisma.user.findFirst({
-            where: { OR: [{ email }, { username }, { phoneNumber }] },
+        const existingSuperAdmin = await prisma.superAdmin.findUnique({
+            where: { email },
         });
 
-        if (existingUser) {
+        if (existingSuperAdmin) {
             return NextResponse.json(
-                { error: "User with this email, username, or phone already exists" },
+                { error: "SuperAdmin with this email already exists" },
                 { status: 409 }
             );
         }
 
         const hashedPassword = await hashPassword(password);
 
-        const user = await prisma.user.create({
+        const superAdmin = await prisma.superAdmin.create({
             data: {
-                firstName,
-                lastName,
-                username,
+                name,
                 email,
                 password: hashedPassword,
-                phoneNumber,
-                address,
-                postalCode,
-                city,
-                role: "superadmin",
-                notes: notes || "",
                 isActive: true,
             },
             select: {
                 id: true,
-                firstName: true,
-                lastName: true,
-                username: true,
+                name: true,
                 email: true,
-                phoneNumber: true,
-                role: true,
                 isActive: true,
+                createdAt: true,
             },
         });
 
-        const token = await generateToken(user.id, user.role);
+        // No customer_id for SuperAdmin
+        const token = await generateToken(superAdmin.id, "superadmin");
 
         const res = NextResponse.json(
-            { message: "Superadmin registered successfully", user, token },
+            { message: "Superadmin registered successfully", user: superAdmin, token },
             { status: 201 }
         );
 

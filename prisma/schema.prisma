@@ -8,7 +8,7 @@ datasource db {
 }
 
 enum Role {
-  employeeAadministrator
+  employeeAdministrator
   controlDriver
   client
   employeeAdmin_controlDriver
@@ -16,17 +16,34 @@ enum Role {
   admin
 }
 
+model SuperAdmin {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customers    Customer[]
+
+  @@index([isActive,name])
+}
+
 model Customer {
   customer_id     Int      @id @default(autoincrement())
   customerName    String   @unique
   note            String?
   creationDate    DateTime @default(now())
-  lastPatrol      DateTime
+  lastPatrol      DateTime?
   isActive        Boolean  @default(true)
-  number_of_users Int
+  number_of_users Int?
   createdBy       Int
 
-  users User[] // one customer has many users
+  users User[]
+  createdByAdmin  SuperAdmin @relation(fields: [createdBy], references: [id])
+
+  @@index([isActive])
 }
 
 model User {
@@ -49,6 +66,9 @@ model User {
 
   customer_id Int
   customer    Customer @relation(fields: [customer_id], references: [customer_id])
+  
+
+  @@index([role,city,id,postalCode,isActive])
 }
 
 model PasswordResetOTP {

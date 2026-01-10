@@ -3,8 +3,8 @@ import { requireRole } from '@/lib/middleware';
 
 export async function GET(request) {
   try {
-    // Only superadmin and admin can view all users
-    const authResult = await requireRole(request, ['superadmin', 'admin']);
+    // Only superadmin can view all users across all companies
+    const authResult = await requireRole(request, ['superadmin']);
     
     if (authResult.error) {
       return Response.json(
@@ -23,7 +23,15 @@ export async function GET(request) {
         phoneNumber: true,
         role: true,
         isActive: true,
-        registrationDate: true
+        registrationDate: true,
+        customer_id: true,
+        customer: {        
+          select: {
+            customer_id: true,
+            customerName: true,
+            isActive: true,
+          }
+        }
       },
       orderBy: {
         registrationDate: 'desc'

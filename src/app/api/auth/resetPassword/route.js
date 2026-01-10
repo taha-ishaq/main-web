@@ -21,10 +21,28 @@ export async function POST(req) {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await prisma.user.update({
-      where: { email },
-      data: { password: hashedPassword },
-    });
+    // Check which table the user belongs to
+    const superAdmin = await prisma.superAdmin.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (superAdmin) {
+      // Update SuperAdmin password
+      await prisma.superAdmin.update({
+        where: { email },
+        data: { password: hashedPassword },
+      });
+    } else if (user) {
+      // Update User password
+      await prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword },
+      });
+    } else {
+      return Response.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
 
     return Response.json({
       message: "Password reset successful",

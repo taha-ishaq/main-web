@@ -1,7 +1,3 @@
-// ===============================
-// 4) SUPERADMIN LOGIN
-// File: app/api/auth/superadmin/login/route.js
-// ===============================
 import prisma from "@/lib/prisma";
 import { verifyPassword, generateToken } from "@/lib/auth";
 import { NextResponse } from "next/server";
@@ -18,27 +14,28 @@ export async function POST(request) {
             );
         }
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const superAdmin = await prisma.superAdmin.findUnique({ where: { email } });
 
-        if (!user || user.role !== "superadmin") {
+        if (!superAdmin) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        if (!user.isActive) {
+        if (!superAdmin.isActive) {
             return NextResponse.json({ error: "Account is deactivated" }, { status: 403 });
         }
 
-        const ok = await verifyPassword(password, user.password);
+        const ok = await verifyPassword(password, superAdmin.password);
         if (!ok) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
-        const token = await generateToken(user.id, user.role);
-        const { password: _, ...userWithoutPassword } = user;
+        const token = await generateToken(superAdmin.id, "superadmin");
+        
+        const { password: _, ...superAdminWithoutPassword } = superAdmin;
 
         const res = NextResponse.json({
             message: "Superadmin login successful",
-            user: userWithoutPassword,
+            user: superAdminWithoutPassword,
             token,
         });
 

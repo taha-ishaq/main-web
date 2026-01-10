@@ -14,8 +14,8 @@ export async function verifyPassword(password, hashedPassword) {
 }
 
 // JWT Token setup
-export async function generateToken(userId, role) {
-  return await new SignJWT({ userId, role })
+export async function generateToken(userId, role, customer_id = null) {
+  return await new SignJWT({ userId, role, customer_id })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(process.env.JWT_EXPIRES_IN || '7d')

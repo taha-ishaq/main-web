@@ -1,3 +1,4 @@
+// src/app/api/auth/forgotPassword/route.js
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
@@ -10,16 +11,18 @@ export async function POST(req) {
       return Response.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Security best practice: always respond the same
+    // Check both SuperAdmin and User tables
+    const superAdmin = await prisma.superAdmin.findUnique({ where: { email } });
     const user = await prisma.user.findUnique({ where: { email } });
 
-    if (!user) {
+    // Security best practice: always respond the same even if account doesn't exist
+    if (!superAdmin && !user) {
       return Response.json({
         message: "If an account exists, an OTP has been sent",
       });
     }
 
-    // Invalidate previous OTPs
+    // Invalidate previous OTPs for this email
     await prisma.passwordResetOTP.updateMany({
       where: { email, used: false },
       data: { used: true },
