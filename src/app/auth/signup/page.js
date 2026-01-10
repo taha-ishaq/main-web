@@ -219,7 +219,7 @@ export default function Signup() {
               <button
                 type="button"
                 onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-yellow-500"
+                className="absolute right-3 top-1/2  text-zinc-500 hover:text-yellow-500"
                 aria-label="Toggle password visibility"
               >
                 {showPassword ? (
@@ -244,7 +244,7 @@ export default function Signup() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-yellow-500"
+                className="absolute right-3 top-1/2  text-zinc-500 hover:text-yellow-500"
                 aria-label="Toggle confirm password visibility"
               >
                 {showConfirmPassword ? (

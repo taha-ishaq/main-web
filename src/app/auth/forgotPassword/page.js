@@ -82,7 +82,7 @@ export default function ForgotPassword() {
               placeholder="admin@rsa.com"
               className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 pr-10 text-sm outline-none transition focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
             />
-            <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+            <Mail className="absolute right-3 top-1/2  h-5 w-5 text-zinc-400" />
           </div>
 
           {/* Error */}

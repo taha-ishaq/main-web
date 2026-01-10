@@ -94,7 +94,7 @@ export default function ResetPassword() {
             <button
               type="button"
               onClick={() => setShowPassword((p) => !p)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-yellow-500"
+              className="absolute right-3 top-1/2  text-zinc-500 hover:text-yellow-500"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" />
@@ -119,7 +119,7 @@ export default function ResetPassword() {
             <button
               type="button"
               onClick={() => setShowConfirmPassword((p) => !p)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-yellow-500"
+              className="absolute right-3 top-1/2  text-zinc-500 hover:text-yellow-500"
             >
               {showConfirmPassword ? (
                 <EyeOff className="h-5 w-5" />
