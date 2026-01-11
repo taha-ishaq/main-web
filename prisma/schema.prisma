@@ -64,8 +64,8 @@ model User {
   registrationDate DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  customer_id Int
-  customer    Customer @relation(fields: [customer_id], references: [customer_id])
+  customer_id Int?
+  customer    Customer? @relation(fields: [customer_id], references: [customer_id])
   
 
   @@index([role,city,id,postalCode,isActive])

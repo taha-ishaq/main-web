@@ -1,6 +1,7 @@
 // src/app/api/customers/users/route.js
 import prisma from '@/lib/prisma';
 import { requireRole } from '@/lib/middleware';
+import { hashPassword } from "@/lib/auth";
 
 export async function GET(request) {
   try {
